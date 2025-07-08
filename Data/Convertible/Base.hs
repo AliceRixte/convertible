@@ -47,6 +47,17 @@ class Convertible a b where
     {- | Convert @a@ to @b@, returning Right on success and Left on error.
        For a simpler interface, see 'convert'. -}
     safeConvert :: a -> ConvertResult b
+    safeConvert = Right . convert
+    {-# INLINE safeConvert #-}
+
+    {- | Convert from one type of data to another.  Raises an exception if there
+    is an error with the conversion.  For a function that does not raise an
+    exception in that case, see 'safeConvert'. -}
+    convert :: a -> b
+    convert x =
+        case safeConvert x of
+        Left e -> error (prettyConvertError e)
+        Right r -> r
 
 {-
 {- | Any type can be converted to itself. -}
@@ -60,14 +71,7 @@ instance Convertible a b => Convertible [a] [b] where
     safeConvert = mapM safeConvert
 -}
 
-{- | Convert from one type of data to another.  Raises an exception if there is
-an error with the conversion.  For a function that does not raise an exception
-in that case, see 'safeConvert'. -}
-convert :: Convertible a b => a -> b
-convert x =
-    case safeConvert x of
-      Left e -> error (prettyConvertError e)
-      Right r -> r
+
 
 {-
 instance Convertible Int Double where
